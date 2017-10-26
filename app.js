@@ -80,6 +80,7 @@ var accessLogStream = fileStreamRotator.getStream({
     date_format: 'YYYYMMDD',
     filename: logDirectory + '/access-%DATE%.log',
     frequency: 'daily',
+	max_logs: 60,
     verbose: false
 });
 

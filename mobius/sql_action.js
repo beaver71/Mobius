@@ -623,7 +623,17 @@ exports.select_csr = function(ri, callback) {
     });
 };
 
-exports.search_parents_lookup = function(ri, pi_list, result_ri, callback) {
+// [TIM] discovery issue
+exports.search_parents_lookup = function(ri, callback) {
+    console.time('search_parents_lookup ' + ri);
+    var sql = util.format("select ri from lookup where (ri =\'%s\' or pi=\'%s\' or pi like \'%s/%%\') and ty != \'1\' and ty != \'4\' and ty != \'23\' and ty != \'30\' and ty != \'9\' and ty != \'17\'", ri, ri, ri);
+    db.getResult(sql, '', function (err, result_lookup_ri) {
+        console.timeEnd('search_parents_lookup ' + ri);
+        callback(err, result_lookup_ri);
+    });
+};
+
+exports._search_parents_lookup = function(ri, pi_list, result_ri, callback) {
     // //var sql = util.format("select ri from lookup where (ri =\'%s\') or ((pi=\'%s\' or pi like \'%s/%%\') and ty != \'1\' and ty != \'4\' and ty != \'23\' and ty != \'30\' and ty != \'9\' and ty != \'17\')", ri, ri, ri);
     // var sql = util.format("select ri from lookup where (ri =\'%s\') or (pi=\'%s\' or pi like \'%s/%%\')", ri, ri, ri);
     // db.getResult(sql, '', function (err, result_lookup_ri) {
@@ -845,10 +855,13 @@ function build_discovery_sql(ri, query, cur_lim, pi_list, bef_ct) {
     }
 
 
-    query_where = util.format("select a.* from (select ri from lookup where ((ri = \'" + ri + "\') or pi in ("+JSON.stringify(pi_list).replace('[','').replace(']','')+")) %s and (ct > \'%s\')) b left join lookup as a on b.ri = a.ri", ty_str, bef_ct) + query_where;
+    /* query_where = util.format("select a.* from (select ri from lookup where ((ri = \'" + ri + "\') or pi in ("+JSON.stringify(pi_list).replace('[','').replace(']','')+")) %s and (ct > \'%s\')) b left join lookup as a on b.ri = a.ri", ty_str, bef_ct) + query_where; */
+	// [TIM] discovery issue
+	query_where = util.format("select a.* from (select ri from lookup where ((ri = \'" + ri + "\') or pi in ("+JSON.stringify(pi_list).replace('[','').replace(']','')+")) %s) b left join lookup as a on b.ri = a.ri", ty_str) + query_where;
+	
     //query_where = util.format("select a.* from (select ri from lookup where ((ri = \'" + ri + "\') or pi in ("+JSON.stringify(pi_list).replace('[','').replace(']','')+")) %s and (ct > \'%s\' and ct <= \'%s\') limit 1000) b left join lookup as a on b.ri = a.ri", ty_str, bef_ct, cur_ct) + query_where;
     //query_where = util.format("select a.* from (select ri from lookup where (pi in ("+JSON.stringify(pi_list).replace('[','').replace(']','')+")) %s and (ct > \'%s\' and ct <= \'%s\') order by ct desc limit 1000) b left join lookup as a on b.ri = a.ri", ty_str, bef_ct, cur_ct) + query_where;
-	
+//console.log(">>>>>>>>>>>>>build_discovery: "+query_where);
     return query_where;
 }
 
@@ -874,7 +887,7 @@ exports.search_lookup = function (ri, query, cur_lim, pi_list, pi_index, found_O
         }
     }
 
-    //console.log(loop_cnt + ' - ' + cur_lim + ' - ' + bef_ct + ' - ' + cur_pi);
+//console.log("*****search_lookup: "+loop_cnt + ' - ' + cur_lim + ' - ' + bef_ct + ' - cur_pi=', cur_pi);
 
     var sql = build_discovery_sql(ri, query, cur_lim, cur_pi, bef_ct);
     db.getResult(sql, '', function (err, search_Obj) {
@@ -894,7 +907,7 @@ exports.search_lookup = function (ri, query, cur_lim, pi_list, pi_index, found_O
             cur_lim = parseInt(query.lim) - Object.keys(found_Obj).length;
 
             if(pi_index >= pi_list.length) {
-                if(loop_cnt > 9) {
+                if(loop_cnt > 10) {
                     console.timeEnd('search_lookup (' + tid + ')');
                     callback(err, found_Obj);
                 }
@@ -1068,7 +1081,15 @@ exports.select_ts = function (ri, callback) {
     });
 };
 
-exports.select_in_ri_list = function (tbl, ri_list, ri_index, found_Obj, loop_cnt, callback) {
+exports.select_in_ri_list = function (tbl, ri_list, callback) {
+    var sql = util.format("select * from " + tbl + " where ri in ("+JSON.stringify(ri_list).replace('[','').replace(']','')+")");
+    db.getResult(sql, '', function (err, search_Obj) {
+        callback(err, search_Obj);
+    });
+};
+
+// [TIM] discovery issue
+exports._select_in_ri_list = function (tbl, ri_list, ri_index, found_Obj, loop_cnt, callback) {
     var cur_ri = [];
 
     if(loop_cnt == 0) {

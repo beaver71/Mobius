@@ -30,6 +30,7 @@ global.logger = new (winston.Logger)({
         prepend: true,
         json: false,
         level: 'info',
+		maxDays: 60,
         handleExceptions: true,
 		humanReadableUnhandledException: true,
         zippedArchive: true

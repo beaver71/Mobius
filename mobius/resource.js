@@ -1079,7 +1079,8 @@ function presearch_action(request, response, ri_list, comm_Obj, callback) {
     var result_ri = [];
     pi_list.push(comm_Obj.ri);
     console.time('search_parents_lookup ' + comm_Obj.ri);
-    db_sql.search_parents_lookup(comm_Obj.ri, pi_list, result_ri, function (err, search_Obj) {
+    db_sql.search_parents_lookup(comm_Obj.ri,function (err, search_Obj) {
+    /* db_sql.search_parents_lookup(comm_Obj.ri, pi_list, result_ri, function (err, search_Obj) { */
         console.timeEnd('search_parents_lookup ' + comm_Obj.ri);
         if(!err) {
             var finding_Obj = {};
@@ -1114,7 +1115,7 @@ function presearch_action(request, response, ri_list, comm_Obj, callback) {
                     //found_Obj[search_Obj[i].ri] = search_Obj[i];
                 }
             }
-
+	console.log("*****1-presearch_action pi_list:",pi_list.length,"comm_Obj=",comm_Obj,"request.query=",request.query)
             var cur_d = moment().utc().format('YYYY-MM-DD HH:mm:ss');
             db_sql.search_lookup(comm_Obj.ri, request.query, request.query.lim, pi_list, 0, finding_Obj, 0, cur_d, 0, function (err, search_Obj) {
                 if(!err) {
@@ -1170,15 +1171,24 @@ function presearch_action(request, response, ri_list, comm_Obj, callback) {
 }
 
 const ty_list = ['1', '2', '3', '4', '5', '9', '10', '13', '14', '16', '17','23', '29', '30', '27', '24'];
+var ty_list_use;
 
 function search_action(request, response, seq, resource_Obj, ri_list, strObj, presearch_Obj, callback) {
-    if(ty_list.length <= seq) {
+	// [TIM]: query.ty can be an ARRAY not only single value
+	if(request.query.ty != null) {
+        ty_list_use = request.query.ty.toString().split(',');
+    } else {
+		ty_list_use = ty_list;
+	}
+	
+	
+    if(ty_list_use.length <= seq) {
         callback('1', strObj);
         return '0';
     }
 
     var finding_Obj = [];
-    var tbl = ty_list[seq];
+    var tbl = ty_list_use[seq];
 
     if(seq == 0) {
         console.time('search_resource');
@@ -1188,8 +1198,10 @@ function search_action(request, response, seq, resource_Obj, ri_list, strObj, pr
         tbl = request.query.ty;	// [TIM]: query.ty can be an ARRAY not only single value, so error in typeRsrc[tbl]
         seq = ty_list.length;
     } */
-
-    db_sql.select_in_ri_list(responder.typeRsrc[tbl], ri_list, 0, finding_Obj, 0, function (err, search_Obj) {
+console.log("*****1-search_action: "+seq + ' - ' + tbl);
+    db_sql.select_in_ri_list(responder.typeRsrc[tbl], ri_list, function (err, search_Obj) {	
+console.log("*****2-search_action: "+seq + ' - ' + tbl + ' - search_Obj.length= ' +search_Obj.length,err);
+    /* db_sql.select_in_ri_list(responder.typeRsrc[tbl], ri_list, 0, finding_Obj, 0, function (err, search_Obj) { */
         if(!err) {
             if(search_Obj.length >= 1) {
                 //console.timeEnd('search_resource');
@@ -1206,7 +1218,7 @@ function search_action(request, response, seq, resource_Obj, ri_list, strObj, pr
                 }
             }
 
-            if(++seq >= ty_list.length) {
+            if(++seq >= ty_list_use.length) {
                 console.timeEnd('search_resource');
                 callback('1', strObj);
                 return '0';
@@ -1368,14 +1380,15 @@ exports.retrieve = function(request, response, comm_Obj) {
                 }
                 else if (request.query.rcn == 4 || request.query.rcn == 5 ||request.query.rcn == 6) {
                     request.headers.rootnm = 'rsp';
-
+	console.log("*****1-retrieve: ri_list=", ri_list)
                     search_action(request, response, 0, resource_Obj, ri_list, '{', search_Obj, function (rsc, strObj) {
                         if (rsc == '1') {
                             strObj += '}';
                             resource_Obj = JSON.parse(strObj);
-			//console.log("retrieve - rcn:",ri_list, resource_Obj)
+	var tmp = [];
                             for (var index in resource_Obj) {
                                 if (resource_Obj.hasOwnProperty(index)) {
+	tmp.push(resource_Obj[index].ri)
                                     resource_Obj[index] = merge(resource_Obj[index], search_Obj[index]);
                                     for (var index2 in resource_Obj[index]) {
                                         if (resource_Obj[index].hasOwnProperty(index2)) {
@@ -1386,7 +1399,9 @@ exports.retrieve = function(request, response, comm_Obj) {
                                     }
                                 }
                             }
-
+	console.log("*****2-retrieve: resource_Obj-list:",tmp)
+	
+	
                             _this.remove_no_value(request, resource_Obj);
                             responder.search_result(request, response, 200, resource_Obj, 2000, comm_Obj.ri, '');
 
@@ -1989,7 +2004,8 @@ function delete_action(request, response, resource_Obj, comm_Obj, callback) {
     var result_ri = [];
     pi_list.push(comm_Obj.ri);
     console.time('search_parents_lookup ' + comm_Obj.ri);
-    db_sql.search_parents_lookup(comm_Obj.ri, pi_list, result_ri, function (err, search_Obj) {
+    db_sql.search_parents_lookup(comm_Obj.ri, function (err, search_Obj) {
+/*     db_sql.search_parents_lookup(comm_Obj.ri, pi_list, result_ri, function (err, search_Obj) { */
         console.timeEnd('search_parents_lookup ' + comm_Obj.ri);
         if(!err) {
             //if(search_Obj.length == 0) {
