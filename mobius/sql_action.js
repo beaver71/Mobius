@@ -855,9 +855,9 @@ function build_discovery_sql(ri, query, cur_lim, pi_list, bef_ct) {
     }
 
 
-    /* query_where = util.format("select a.* from (select ri from lookup where ((ri = \'" + ri + "\') or pi in ("+JSON.stringify(pi_list).replace('[','').replace(']','')+")) %s and (ct > \'%s\')) b left join lookup as a on b.ri = a.ri", ty_str, bef_ct) + query_where; */
+     query_where = util.format("select a.* from (select ri from lookup where ((ri = \'" + ri + "\') or pi in ("+JSON.stringify(pi_list).replace('[','').replace(']','')+")) %s and (ct > \'%s\')) b left join lookup as a on b.ri = a.ri", ty_str, bef_ct) + query_where;
 	// [TIM] discovery issue
-	query_where = util.format("select a.* from (select ri from lookup where ((ri = \'" + ri + "\') or pi in ("+JSON.stringify(pi_list).replace('[','').replace(']','')+")) %s) b left join lookup as a on b.ri = a.ri", ty_str) + query_where;
+/*  	query_where = util.format("select a.* from (select ri from lookup where ((ri = \'" + ri + "\') or pi in ("+JSON.stringify(pi_list).replace('[','').replace(']','')+")) %s) b left join lookup as a on b.ri = a.ri", ty_str) + query_where; */
 	
     //query_where = util.format("select a.* from (select ri from lookup where ((ri = \'" + ri + "\') or pi in ("+JSON.stringify(pi_list).replace('[','').replace(']','')+")) %s and (ct > \'%s\' and ct <= \'%s\') limit 1000) b left join lookup as a on b.ri = a.ri", ty_str, bef_ct, cur_ct) + query_where;
     //query_where = util.format("select a.* from (select ri from lookup where (pi in ("+JSON.stringify(pi_list).replace('[','').replace(']','')+")) %s and (ct > \'%s\' and ct <= \'%s\') order by ct desc limit 1000) b left join lookup as a on b.ri = a.ri", ty_str, bef_ct, cur_ct) + query_where;
@@ -887,11 +887,12 @@ exports.search_lookup = function (ri, query, cur_lim, pi_list, pi_index, found_O
         }
     }
 
-//console.log("*****search_lookup: "+loop_cnt + ' - ' + cur_lim + ' - ' + bef_ct + ' - cur_pi=', cur_pi);
+console.log("*****search_lookup: "+loop_cnt + ' - ' + cur_lim + ' - ' + bef_ct + ' - cur_pi=', cur_pi);
 
     var sql = build_discovery_sql(ri, query, cur_lim, cur_pi, bef_ct);
     db.getResult(sql, '', function (err, search_Obj) {
         if(!err) {
+console.log("*****___search_Obj.length: "+search_Obj.length,"sql: ",sql);
             //make_json_arraytype(search_Obj);
             for(var i = 0; i < search_Obj.length; i++) {
                 found_Obj[search_Obj[i].ri] = search_Obj[i];
@@ -904,10 +905,10 @@ exports.search_lookup = function (ri, query, cur_lim, pi_list, pi_index, found_O
                 }
             }
 
-            cur_lim = parseInt(query.lim) - Object.keys(found_Obj).length;
+            cur_lim = parseInt(query.lim); // - Object.keys(found_Obj).length;
 
             if(pi_index >= pi_list.length) {
-                if(loop_cnt > 10) {
+                if(loop_cnt > 9) {
                     console.timeEnd('search_lookup (' + tid + ')');
                     callback(err, found_Obj);
                 }
