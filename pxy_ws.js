@@ -431,8 +431,8 @@ function ws_binding(op, to, fr, rqi, ty, pc, bodytype, auth, callback) {
 	};
 	if (auth) {
 		headers['Authorization'] = auth;
-		headers['user-agent'] = "proxy-ws";	// [TIM]
 	}
+	headers['user-agent'] = "proxy-ws";	// [TIM]
 
     if(usesecure == 'disable') {
         var options = {

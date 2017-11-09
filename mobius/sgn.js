@@ -513,7 +513,7 @@ function request_noti_mqtt_action(nu, ri, bodyString, bodytype, xm2mri) {
 
     _mqtt_client[ri].on('error', function (error) {
         _mqtt_client[ri].end(true, function () {
-            console.log('[no response - ' + ss_fail_count[ri] + '] ');
+            console.log('[request_noti_mqtt - no response - ' + ss_fail_count[ri] + '] ');
             delete _mqtt_client[ri];
         });
     });

@@ -529,8 +529,8 @@ function mqtt_binding(op, to, fr, rqi, ty, pc, bodytype, auth, callback) {
 		};
 	if (auth) {
 		headers['Authorization'] = auth;
-		headers['user-agent'] = "proxy-mqtt";	// [TIM]
 	}
+	headers['user-agent'] = "proxy-mqtt";	// [TIM]
     if(usesecure == 'disable') {
         var options = {
             hostname: usemqttcbhost,
